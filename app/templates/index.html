@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Relatórios de OS</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <script>
+ 
+        document.addEventListener("DOMContentLoaded", function () {
+            const token = localStorage.getItem("token");
+            console.log(localStorage.getItem("token"));
+
+            if (!token) {
+                window.location.href = "/login";
+            }
+
+            // Opcional: buscar email e exibir
+            fetch('/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(res => {
+                    console.log('Resposta do /me: ',res);
+                    if (!res.ok) throw new Error("Não autorizado");
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Dados recebidos do /me:', data);
+                    if (data && (data.user || data.email)) {
+                        const email = data.user || data.email;
+                        document.getElementById('user-email').textContent = `Olá, ${email}`;
+                        const initial = email.charAt(0).toUpperCase();
+                        generateUserIcon(initial);
+                    } else {
+                        throw new Error("Formato inválido do /me");
+                    }
+                })
+                .catch(err => {
+                    console.error("Erro ao validar token:", err);
+                    localStorage.removeItem("token");
+                    window.location.href = "/login";
+                });
+
+        function generateUserIcon(initial) {
+            const userIcon = document.getElementById("user-icon");
+
+            // Cria um novo elemento div para o ícone
+            const icon = document.createElement("div");
+            icon.textContent = initial; // Coloca a inicial
+            icon.classList.add("user-avatar"); // Adiciona uma classe para estilizar
+
+            // Limpa o conteúdo do ícone atual e insere o novo ícone
+            userIcon.innerHTML = ''; 
+            userIcon.appendChild(icon);
+        }
+
+            // Fecha o dropdown se clicar fora dele
+            document.addEventListener("click", function (event) {
+                const icon = document.querySelector(".user-icon");
+                const dropdown = document.getElementById("user-dropdown");
+
+                if (!icon.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.style.display = "none";
+                }
+            });
+        });
+                    //Alterna o menu dropdown do usuário
+                   function toggleDropdown() {
+                const dropdown = document.getElementById("user-dropdown");
+                dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+            }
+
+            function logout() {
+                //Remove o token do localStorage
+                localStorage.removeItem("token");
+
+                //(Opcional) Também remove do cookie, caso exista
+                document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+                //Redireciona para o login
+                window.location.href = "/login";
+            }
+    </script>
+</head>
+
+<body>
+
+    <h2>Relatórios de OS</h2>
+
+    <div class="user-menu">
+        <div class="user-icon" onclick="toggleDropdown()">
+            <img src="/static/user-icon.png" alt="Usuário">
+        </div>
+        <div id="user-dropdown" class="dropdown-menu">
+            <span id="user-email" style="display:block; padding: 5px 10px;"></span>
+            <button onclick="logout()">Sair</button>
+        </div>
+    </div>
+
+
+
+    <form id="filters-form">
+        Técnico: <select id="tecnico" name="tecnico">
+            <option value="">Selecione</option>
+        </select><br><br>
+
+        Tipo de Serviço:
+        <select id="tipo_servico" name="tipo_servico">
+            <option value="">Selecione</option>
+        </select><br><br>
+
+        Data Início: <input type="date" id="start_date" name="start_date"><br><br>
+        Data Fim: <input type="date" id="end_date" name="end_date"><br><br>
+
+        <button type="button" id="filter-btn">Filtrar</button>
+        <br><br>
+
+        Selecione o arquivo:
+        <div class="file-input-container">
+            <input type="file" id="file-input" name="file-input" style="display: none;">
+            <button type="button" class="custom-file-button" onclick="document.getElementById('file-input').click();">
+                Escolher Arquivo
+            </button>
+        </div><br><br>
+
+        <button type="submit" id="generate-btn" style="display: none;">Gerar</button>
+    </form>
+
+    <h3>Resultados</h3>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Cliente</th>
+                <th onclick="sortTable(1)">Tipo de Serviço</th>
+                <th onclick="sortTable(2)">Descrição</th>
+                <th onclick="sortTable(3)">Técnico</th>
+                <th onclick="sortTable(4)">Descrição Fechamento</th>
+                <th onclick="sortTable(5)">Finalizada</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="service-counts">
+        <p><strong>Contagem de Serviços:</strong></p>
+        <p>Manutenção: <span id="manutencao-count">0</span></p>
+        <p>Instalação: <span id="instalacao-count">0</span></p>
+        <p>Transferência: <span id="transferencia-count">0</span></p>
+    </div>
+
+    <button id="download-pdf-btn" onclick="downloadPDF()">Baixar PDF</button>
+
+    <script src="{{ url_for('static', filename='jspdf.umd.min.js') }}"></script>
+    <script>
+            let loadedData = [];
+
+            function applyFilters() {
+                const tecnico = document.getElementById('tecnico').value;
+                const tipo_servico = document.getElementById('tipo_servico').value;
+                const start_date = document.getElementById('start_date').value;
+                const end_date = document.getElementById('end_date').value;
+
+                const filteredData = loadedData.filter(row => {
+                    const tecnicoMatch = tecnico ? row.tecnico.toLowerCase().includes(tecnico.toLowerCase()) : true;
+                    const tipoServicoMatch = tipo_servico ? row.tipo_servico.toLowerCase().includes(tipo_servico.toLowerCase()) : true;
+                    const startDateMatch = start_date ? new Date(row.horario) >= new Date(start_date) : true;
+                    const endDateMatch = end_date ? new Date(row.horario) <= new Date(end_date) : true;
+
+                    return tecnicoMatch && tipoServicoMatch && startDateMatch && endDateMatch;
+                });
+
+                displayData(filteredData);
+            }
+
+            document.getElementById('filter-btn').addEventListener('click', applyFilters);
+
+            document.getElementById('filters-form').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const fileInput = document.getElementById('file-input').files[0];
+
+                const token = localStorage.getItem('token');
+
+                if (fileInput) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput);
+
+                    fetch('http://localhost:5000/upload', {
+                        method: 'POST',
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            loadedData = data;
+                            displayData(loadedData);
+                            countServiceTypes(loadedData);
+                            populateTipoServicoSelect(loadedData);
+                            populateTecnicosSelect(loadedData);
+                        })
+                        .catch(error => console.error('Erro:', error));
+                }
+            });
+
+            function displayData(data) {
+                const tbody = document.querySelector('#result-table tbody');
+                tbody.innerHTML = '';
+
+                console.log("🔹 Dados recebidos do backend:", data);
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+            <td>${row.Cliente}</td>
+            <td>${row.Tipo}</td>
+            <td>${row.Descricao_Servico}</td>
+            <td>${row.Tecnicos}</td>
+            <td>${row.Descricao_Fechamento}</td> 
+            <td>${row.Status}</td>
+        `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function countServiceTypes(data) {
+                let manutencaoCount = 0;
+                let instalacaoCount = 0;
+                let transferenciaCount = 0;
+
+                data.forEach(row => {
+                    if (row.tipo_servico === 'Manutenção') {
+                        manutencaoCount++;
+                    } else if (row.tipo_servico === 'Instalação') {
+                        instalacaoCount++;
+                    } else if (row.tipo_servico === 'Transferência') {
+                        transferenciaCount++;
+                    }
+                });
+
+                document.getElementById('manutencao-count').textContent = manutencaoCount;
+                document.getElementById('instalacao-count').textContent = instalacaoCount;
+                document.getElementById('transferencia-count').textContent = transferenciaCount;
+            }
+
+            function sortTable(columnIndex) {
+                const table = document.getElementById("result-table");
+                const rows = Array.from(table.rows).slice(1);
+                const isNumericColumn = columnIndex === 4 || columnIndex === 5;
+
+                rows.sort((rowA, rowB) => {
+                    const cellA = rowA.cells[columnIndex].textContent.trim();
+                    const cellB = rowB.cells[columnIndex].textContent.trim();
+
+                    if (isNumericColumn) {
+                        return new Date(cellA) - new Date(cellB);
+                    } else {
+                        return cellA.localeCompare(cellB);
+                    }
+                });
+
+                rows.forEach(row => table.appendChild(row));
+            }
+
+            function downloadPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const table = document.getElementById('result-table');
+                const rows = Array.from(table.rows);
+                const header = rows[0].cells;
+
+                let rowHeight = 10;
+                let yPosition = 20;
+
+                doc.setFontSize(18);
+                doc.text("Relatório de OS", 14, yPosition);
+                yPosition += 20;
+
+                doc.setFontSize(12);
+                Array.from(header).forEach((cell, index) => {
+                    doc.text(cell.innerText, 14 + (index * 30), yPosition);
+                });
+                yPosition += rowHeight;
+
+                rows.slice(1).forEach(row => {
+                    const cells = Array.from(row.cells);
+                    cells.forEach((cell, index) => {
+                        const xPosition = 14 + (index * 30);
+                        const text = cell.innerText;
+                        const maxWidth = 180;
+
+                        doc.text(text, xPosition, yPosition, { maxWidth: maxWidth });
+                    });
+                    yPosition += rowHeight;
+                });
+
+                doc.save('relatorio_os.pdf');
+            }
+
+            document.getElementById('file-input').addEventListener('change', function () {
+                const generateBtn = document.getElementById('generate-btn');
+                if (this.files.length > 0) {
+                    generateBtn.style.display = 'inline';
+                } else {
+                    generateBtn.style.display = 'none';
+                }
+            });
+
+            function populateTipoServicoSelect(data) {
+                const tipoServicoSelect = document.getElementById('tipo_servico');
+                const tiposServicos = [...new Set(data.map(row => row.tipo_servico))];
+
+                tipoServicoSelect.innerHTML = '<option value="">Selecione</option>';
+
+                tiposServicos.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo;
+                    option.textContent = tipo;
+                    tipoServicoSelect.appendChild(option);
+                });
+            }
+
+            function populateTecnicosSelect(data) {
+                const tecnicoSelect = document.getElementById('tecnico');
+                const tecnicos = [...new Set(data.map(row => row.tecnico))];
+
+                tecnicoSelect.innerHTML = '<option value="">Selecione</option>';
+
+                tecnicos.forEach(tecnico => {
+                    const option = document.createElement('option');
+                    option.value = tecnico;
+                    option.textContent = tecnico;
+                    tecnicoSelect.appendChild(option);
+                });
+            }
+
+
+    </script>
+
+
+</body>
+
+</html>

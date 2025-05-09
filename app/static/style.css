@@ -1,0 +1,306 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h2 {
+    text-align: center;
+    color: #FF1D00;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+#filters-form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+#filters-form input[type="text"],
+#filters-form input[type="date"],
+#filters-form button,
+#filters-form select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+#filters-form button {
+    background-color: #FF1D00;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+#filters-form button:hover {
+    background-color: #d61a00;
+}
+
+#filters-form select {
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#filters-form select:hover {
+    background-color: #f1f1f1;
+}
+
+h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+th {
+    background-color: #FF1D00;
+    color: white;
+    font-weight: bold;
+}
+
+td {
+    color: #555;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+#download-pdf-btn {
+    display: block;
+    width: 200px;
+    margin: 20px auto;
+    padding: 12px;
+    background-color: #FF1D00;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#download-pdf-btn:hover {
+    background-color: #d61800;
+    transform: scale(1.05);
+}
+
+#download-pdf-btn:active {
+    transform: scale(0.95);
+}  
+
+#service-counts {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end; 
+    gap: 20px;
+    font-size: 16px;
+}
+
+#service-counts p {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+#service-counts span {
+    font-weight: bold;
+}
+
+.custom-file-button {
+    display: inline-block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007BFF;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-file-button:hover {
+    background-color: #0056b3;
+}
+
+.file-input-container {
+    position: relative;
+}
+
+#file-input {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    #filters-form input[type="text"],
+    #filters-form input[type="date"],
+    #filters-form button,
+    #filters-form select {
+        width: 100%;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    #service-counts {
+        flex-direction: column; 
+        align-items: flex-start;
+    }
+}
+
+/* ==========================
+   Estilos da Página de Login
+   ========================== */
+body.login-container {
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 0;
+
+    
+    background-image: url("static/capa.png");
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+.login-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+}
+
+.login-box h2 {
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+.login-box input[type="email"],
+.login-box input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #d61800;
+    border: none;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.login-box button:hover {
+    background-color: #ee6856;
+}
+.user-menu {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    z-index: 100;
+}
+
+.user-icon img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    margin-top: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-menu button {
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px 10px;
+}
+.user-avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ff9900; /* Cor de fundo (pode mudar) */
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
